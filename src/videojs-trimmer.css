@@ -1,0 +1,35 @@
+.vjs-trimmer {
+  position: absolute;
+  height: 5px;
+  bottom: 0;
+  background: rgba(0, 255, 0, 0.5); /* Parte selezionata più visibile */
+  z-index: 10;
+}
+.vjs-trimmer-handle {
+  position: absolute;
+  width: 2px;
+  height: 20px;
+  background: yellow;
+  cursor: pointer;
+  z-index: 11;
+}
+.vjs-trimmer-handle.start::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 10px;
+  border-style: solid;
+  border-color: transparent transparent transparent yellow;
+}
+.vjs-trimmer-handle.end::after {
+  content: '';
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 10px;
+  border-style: solid;
+  border-color: transparent yellow transparent transparent;
+}
