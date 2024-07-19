@@ -24,6 +24,9 @@ Include the Video.js library and the `videojs-popups` files in your HTML file:
 <script src="https://vjs.zencdn.net/8.6.1/video.min.js"></script>
 
 <!-- Video.js Trimmer plugin -->
+<!--dependency-->
+<script src="https://cdn.jsdelivr.net/npm/videojs-offset@2.1.3/dist/videojs-offset.min.js"></script>
+<!--dependency-->
 <link href="https://cdn.jsdelivr.net/gh/Teyuto/videojs-trimmer@main/src/videojs-trimmer.min.css" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/gh/Teyuto/videojs-trimmer@main/src/videojs-trimmer.min.js"></script>
 ```

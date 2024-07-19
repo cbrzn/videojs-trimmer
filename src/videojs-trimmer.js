@@ -7,31 +7,37 @@
       this.player = player;
       this.startTime = 0;
       this.endTime = 0;
+      this.originalDuration = 0;
 
       this.createTrimmer();
 
       this.player.on('loadedmetadata', () => {
-        this.endTime = this.player.duration();
+        this.originalDuration = this.player.duration();
+        this.endTime = this.originalDuration;
         this.updateTrimmer();
+        this.createTimeMarkers();
       });
+
+      this.player.addClass('video-js-trimmer');
+
 
       this.bindEvents();
     }
 
     createTrimmer() {
-      const progressControl = this.player.controlBar.progressControl;
+      const progressControl = this.player.controlBar.progressControl.el();
 
       this.trimmerEl = document.createElement('div');
       this.trimmerEl.className = 'vjs-trimmer';
-      progressControl.el().appendChild(this.trimmerEl);
+      progressControl.appendChild(this.trimmerEl);
 
       this.startHandle = document.createElement('div');
       this.startHandle.className = 'vjs-trimmer-handle start';
-      progressControl.el().appendChild(this.startHandle);
+      progressControl.appendChild(this.startHandle);
 
       this.endHandle = document.createElement('div');
       this.endHandle.className = 'vjs-trimmer-handle end';
-      progressControl.el().appendChild(this.endHandle);
+      progressControl.appendChild(this.endHandle);
 
       this.updateTrimmer();
     }
@@ -41,15 +47,14 @@
       let isDraggingEnd = false;
 
       const onMouseMove = (event) => {
-        const rect = this.player.controlBar.progressControl.el().getBoundingClientRect();
-        const pos = (event.clientX - rect.left) / rect.width * this.player.duration();
+        const progressControl = this.player.controlBar.progressControl.el();
+        const rect = progressControl.getBoundingClientRect();
+        const pos = (event.clientX - rect.left) / rect.width * this.originalDuration;
 
         if (isDraggingStart) {
-          this.startTime = Math.min(pos, this.endTime);
-          this.startTime = Math.max(this.startTime, 0);
+          this.startTime = Math.min(Math.max(pos, 0), this.endTime);
         } else if (isDraggingEnd) {
-          this.endTime = Math.max(pos, this.startTime);
-          this.endTime = Math.min(this.endTime, this.player.duration());
+          this.endTime = Math.max(Math.min(pos, this.originalDuration), this.startTime);
         }
 
         this.updateTrimmer();
@@ -64,6 +69,7 @@
         isDraggingEnd = false;
         document.removeEventListener('mousemove', onMouseMove);
         document.removeEventListener('mouseup', onMouseUp);
+        this.player.currentTime(0);
       };
 
       this.startHandle.addEventListener('mousedown', () => {
@@ -77,29 +83,51 @@
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
       });
-
-      this.player.on('timeupdate', () => {
-        if (this.player.currentTime() < this.startTime || this.player.currentTime() > this.endTime) {
-          this.player.currentTime(this.startTime);
-        }
-      });
     }
 
     updateTrimmer() {
-      const progressControl = this.player.controlBar.progressControl;
-      const rect = progressControl.el().getBoundingClientRect();
-      const startPos = (this.startTime / this.player.duration()) * rect.width;
-      const endPos = (this.endTime / this.player.duration()) * rect.width;
+      const progressControl = this.player.controlBar.progressControl.el();
+      const startPos = (this.startTime / this.originalDuration) * 100;
+      const endPos = (this.endTime / this.originalDuration) * 100;
 
-      this.trimmerEl.style.left = `${startPos}px`;
-      this.trimmerEl.style.width = `${endPos - startPos}px`;
+      this.trimmerEl.style.left = `${startPos}%`;
+      this.trimmerEl.style.width = `${endPos - startPos}%`;
 
-      this.startHandle.style.left = `${startPos - this.startHandle.offsetWidth / 2}px`;
-      if(!endPos){
-        this.endHandle.style.left = `100%`;
-      }else{
-        this.endHandle.style.left = `${endPos - this.endHandle.offsetWidth / 2}px`;
+      this.startHandle.style.left = `${startPos}%`;
+      this.endHandle.style.left = `${endPos}%`;
+
+      this.player.offset({
+        start: this.startTime,
+        end: this.endTime
+      });
+    }
+
+    createTimeMarkers() {
+      const progressControl = this.player.controlBar.progressControl.el();
+      const markerContainer = document.createElement('div');
+      markerContainer.className = 'vjs-time-markers';
+      progressControl.appendChild(markerContainer);
+
+      const numMarkers = 20; // Numero di marker da visualizzare
+      for (let i = 0; i <= numMarkers; i++) {
+        const marker = document.createElement('div');
+        marker.className = 'vjs-time-marker';
+        const time = (i / numMarkers) * this.originalDuration;
+        marker.style.left = `${(i / numMarkers) * 100}%`;
+        
+        const timeLabel = document.createElement('span');
+        timeLabel.className = 'vjs-time-label';
+        timeLabel.textContent = this.formatTime(time);
+        
+        marker.appendChild(timeLabel);
+        markerContainer.appendChild(marker);
       }
+    }
+
+    formatTime(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = Math.floor(seconds % 60);
+      return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
     }
   }
 
