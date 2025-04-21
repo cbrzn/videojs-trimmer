@@ -1,31 +1,32 @@
 {
-    "name": "@teyuto/videojs-trimmer",
-    "author": "Teyuto",
-    "license": "MIT",
-    "version": "1.0.1",
-    "description": "Video.js Trimmer Plugin",
-    "repository": {
-      "type": "git",
-      "url": "https://github.com/Teyuto/videojs-trimmer.git"
-    },
-    "private": false,
-    "publishConfig": {
-        "access": "public",
-        "registry": "https://registry.npmjs.org/"
-    },
-    "files": [
-        "src"
-    ],
-    "keywords": [
-      "videojs",
-      "videojs-plugin",
-      "videojs-trimmer",
-      "trimmer",
-      "teyuto",
-      "video"
-    ],
-    "bugs": {
-      "url": "https://github.com/Teyuto/videojs-trimmer/issues"
-    },
-    "homepage": "https://github.com/Teyuto/videojs-trimmer#readme"
+  "name": "videojs-trimmer",
+  "license": "MIT",
+  "version": "1.0.0",
+  "description": "Video.js Trimmer Plugin",
+  "private": false,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "keywords": [
+    "videojs",
+    "videojs-plugin",
+    "videojs-trimmer",
+    "trimmer",
+    "video"
+  ],
+  "scripts": {
+    "build": "rollup -c rollup.config.js",
+    "postbuild": "postcss -o dist/videojs-trimmer.css --config postcss.config.js src/videojs-trimmer.css"
+  },
+  "dependencies": {
+    "video.js": "^8"
+  },
+  "devDependencies": {
+    "postcss": "^8.5.3",
+    "postcss-cli": "^11.0.1",
+    "rollup": "^2.79.2",
+    "videojs-generate-postcss-config": "^2.1.1",
+    "videojs-generate-rollup-config": "^7.0.2"
   }
+}
