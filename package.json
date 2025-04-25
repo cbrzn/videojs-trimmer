@@ -1,10 +1,15 @@
 {
   "name": "videojs-trimmer",
   "license": "MIT",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.9",
   "description": "Video.js Trimmer Plugin",
-  "private": false,
-  "publishConfig": {
+  "main": "cjs/plugin.js",
+  "module": "es/plugin.js",
+  "browser": "dist/videojs-trimmer.js",
+  "generator-videojs-plugin": {
+    "version": "9.0.0"
+  },
+   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
@@ -16,17 +21,26 @@
     "video"
   ],
   "scripts": {
-    "build": "rollup -c rollup.config.js",
+    "build": "npm-run-all -s clean -p build:*",
+    "build:es": "babel-config-es -d ./es ./src",
+    "build:cjs": "babel-config-cjs -d ./cjs ./src",
+    "build:js": "rollup -c rollup.config.js",
+    "clean": "shx rm -rf ./dist ./cjs ./es && shx mkdir -p ./dist ./cjs ./es",
     "postbuild": "postcss -o dist/videojs-trimmer.css --config postcss.config.js src/videojs-trimmer.css"
   },
   "dependencies": {
     "video.js": "^8"
   },
   "devDependencies": {
+    "@babel/cli": "^7.14.3",
+    "@babel/runtime": "^7.14.0",
+    "@videojs/babel-config": "^0.2.0",
+    "@videojs/generator-helpers": "~3.0.0",
     "postcss": "^8.5.3",
     "postcss-cli": "^11.0.1",
     "rollup": "^2.79.2",
     "videojs-generate-postcss-config": "^2.1.1",
-    "videojs-generate-rollup-config": "^7.0.2"
+    "videojs-generate-rollup-config": "^7.0.2",
+    "videojs-standard": "^9.1.0"
   }
 }

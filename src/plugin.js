@@ -2,7 +2,7 @@ import videojs from "video.js";
 import { version as VERSION } from "../package.json";
 
 const Plugin = videojs.getPlugin("plugin");
-
+console.log("jaja")
 class VideoTrimmer extends Plugin {
   /**
    * Create a VideoTrimmer plugin instance.
@@ -18,24 +18,21 @@ class VideoTrimmer extends Plugin {
    *         from your plugin's caller.
    */
   constructor(player, options) {
-    super(player, options);
-    this.player = player;
+    console.log("b4?")
+    super(player);
+    console.log("here")
+    this.options = videojs.obj.merge(options);
+
     this.startTime = 0;
     this.endTime = 0;
     this.originalDuration = 0;
 
-    this.createTrimmer();
+    this.player.ready(() => {
+      this.player.addClass("video-js-trimmer");
+      this.createTrimmer()
+      this.bindEvents();
+    })
 
-    this.player.on("loadedmetadata", () => {
-      this.originalDuration = this.player.duration();
-      this.endTime = this.originalDuration;
-      this.updateTrimmer();
-      this.createTimeMarkers();
-    });
-
-    this.player.addClass("video-js-trimmer");
-
-    this.bindEvents();
   }
 
   createTrimmer() {
@@ -149,10 +146,7 @@ class VideoTrimmer extends Plugin {
   }
 }
 
-// Include the version number.
-VideoTrimmer.VERSION = VERSION;
-
 // Register the plugin with video.js.
-videojs.registerPlugin("videoTrimmer", VideoTrimmer);
+videojs.registerPlugin("trimmer", VideoTrimmer);
 
 export default VideoTrimmer;
