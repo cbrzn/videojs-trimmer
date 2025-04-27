@@ -1,54 +1,57 @@
 import videojs from "video.js";
-import { version as VERSION } from "../package.json";
+import "videojs-offset";
 
 const Plugin = videojs.getPlugin("plugin");
-console.log("jaja")
 class VideoTrimmer extends Plugin {
-  /**
-   * Create a VideoTrimmer plugin instance.
-   *
-   * @param  {Player} player
-   *         A Video.js Player instance.
-   *
-   * @param  {Object} [options]
-   *         An optional options object.
-   *
-   *         While not a core part of the Video.js plugin architecture, a
-   *         second argument of options is a convenient way to accept inputs
-   *         from your plugin's caller.
-   */
   constructor(player, options) {
-    console.log("b4?")
     super(player);
-    console.log("here")
     this.options = videojs.obj.merge(options);
 
     this.startTime = 0;
     this.endTime = 0;
     this.originalDuration = 0;
+    this.isDragging = false; // Track dragging state for throttling
 
-    this.player.ready(() => {
-      this.player.addClass("video-js-trimmer");
-      this.createTrimmer()
-      this.bindEvents();
-    })
+    this.createTrimmer();
 
+    this.player.on("loadedmetadata", () => {
+      this.originalDuration = this.player.duration();
+      this.endTime = this.originalDuration;
+      this.updateTrimmer();
+      // this.createTimeMarkers();
+    });
+  
+    this.player.addClass("video-js-trimmer");
+
+    this.bindEvents();
   }
 
   createTrimmer() {
-    const progressControl = this.player.controlBar.progressControl.el();
+    // Create the trimmer container
+    this.trimmerContainer = document.createElement("div");
+    this.trimmerContainer.className = "vjs-trimmer-container";
 
+    // Insert it after the video element but before the control bar
+    const playerEl = this.player.el();
+    playerEl.insertBefore(this.trimmerContainer, this.player.controlBar.el());
+
+    // Create and append trimmer elements to the new container
     this.trimmerEl = document.createElement("div");
     this.trimmerEl.className = "vjs-trimmer";
-    progressControl.appendChild(this.trimmerEl);
+    this.trimmerContainer.appendChild(this.trimmerEl);
 
     this.startHandle = document.createElement("div");
     this.startHandle.className = "vjs-trimmer-handle start";
-    progressControl.appendChild(this.startHandle);
+    this.trimmerContainer.appendChild(this.startHandle);
 
     this.endHandle = document.createElement("div");
     this.endHandle.className = "vjs-trimmer-handle end";
-    progressControl.appendChild(this.endHandle);
+    this.trimmerContainer.appendChild(this.endHandle);
+
+    // Add duration display
+    this.durationDisplay = document.createElement("div");
+    this.durationDisplay.className = "vjs-trimmer-duration";
+    this.trimmerContainer.appendChild(this.durationDisplay);
 
     this.updateTrimmer();
   }
@@ -56,10 +59,19 @@ class VideoTrimmer extends Plugin {
   bindEvents() {
     let isDraggingStart = false;
     let isDraggingEnd = false;
+    let lastUpdateTime = 0;
+    const throttleDelay = 16; // ~60fps
 
     const onMouseMove = (event) => {
-      const progressControl = this.player.controlBar.progressControl.el();
-      const rect = progressControl.getBoundingClientRect();
+      if (!this.isDragging) return;
+
+      const now = performance.now();
+      if (now - lastUpdateTime < throttleDelay) return;
+
+      lastUpdateTime = now;
+
+      // Use trimmerContainer for positioning
+      const rect = this.trimmerContainer.getBoundingClientRect();
       const pos =
         ((event.clientX - rect.left) / rect.width) * this.originalDuration;
 
@@ -72,36 +84,43 @@ class VideoTrimmer extends Plugin {
         );
       }
 
-      this.updateTrimmer();
-      this.player.trigger("trimmerchange", {
-        startTime: this.startTime,
-        endTime: this.endTime,
+      this.player.currentTime(0)
+      // Use requestAnimationFrame for smoother updates
+      requestAnimationFrame(() => {
+        this.updateTrimmer();
+        this.player.trigger("trimmerchange", {
+          startTime: this.startTime,
+          endTime: this.endTime,
+        });
       });
     };
 
     const onMouseUp = () => {
       isDraggingStart = false;
       isDraggingEnd = false;
+      this.isDragging = false;
       document.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("mouseup", onMouseUp);
-      this.player.currentTime(0);
     };
 
-    this.startHandle.addEventListener("mousedown", () => {
+    this.startHandle.addEventListener("mousedown", (event) => {
+      event.preventDefault(); // Prevent text selection
       isDraggingStart = true;
+      this.isDragging = true;
       document.addEventListener("mousemove", onMouseMove);
       document.addEventListener("mouseup", onMouseUp);
     });
 
-    this.endHandle.addEventListener("mousedown", () => {
+    this.endHandle.addEventListener("mousedown", (event) => {
+      event.preventDefault(); // Prevent text selection
       isDraggingEnd = true;
+      this.isDragging = true;
       document.addEventListener("mousemove", onMouseMove);
       document.addEventListener("mouseup", onMouseUp);
     });
   }
 
   updateTrimmer() {
-    const progressControl = this.player.controlBar.progressControl.el();
     const startPos = (this.startTime / this.originalDuration) * 100;
     const endPos = (this.endTime / this.originalDuration) * 100;
 
@@ -115,15 +134,21 @@ class VideoTrimmer extends Plugin {
       start: this.startTime,
       end: this.endTime,
     });
+
+    // Update duration display
+    const trimmedDuration = this.endTime - this.startTime;
+    this.durationDisplay.textContent = `Trimmed duration: ${this.formatTime(
+      trimmedDuration
+    )}`;
   }
 
   createTimeMarkers() {
-    const progressControl = this.player.controlBar.progressControl.el();
+    // Append markers to trimmerContainer instead of progressControl
     const markerContainer = document.createElement("div");
     markerContainer.className = "vjs-time-markers";
-    progressControl.appendChild(markerContainer);
+    this.trimmerContainer.appendChild(markerContainer);
 
-    const numMarkers = 20; // Numero di marker da visualizzare
+    const numMarkers = 20; // Number of markers to display
     for (let i = 0; i <= numMarkers; i++) {
       const marker = document.createElement("div");
       marker.className = "vjs-time-marker";

@@ -1,7 +1,7 @@
 {
   "name": "videojs-trimmer",
   "license": "MIT",
-  "version": "1.0.0-beta.9",
+  "version": "1.0.0-beta.19",
   "description": "Video.js Trimmer Plugin",
   "main": "cjs/plugin.js",
   "module": "es/plugin.js",
@@ -9,7 +9,7 @@
   "generator-videojs-plugin": {
     "version": "9.0.0"
   },
-   "publishConfig": {
+  "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
@@ -29,7 +29,8 @@
     "postbuild": "postcss -o dist/videojs-trimmer.css --config postcss.config.js src/videojs-trimmer.css"
   },
   "dependencies": {
-    "video.js": "^8"
+    "video.js": "^8",
+    "videojs-offset": "^2.1.3"
   },
   "devDependencies": {
     "@babel/cli": "^7.14.3",

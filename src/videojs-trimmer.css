@@ -1,14 +1,29 @@
-.vjs-trimmer {
-  position: absolute;
-  height: 5px;
-  bottom: 0;
-  background: rgba(0, 255, 0, 0.5); /* Parte selezionata più visibile */
-  z-index: 10;
+.vjs-trimmer-container {
+  position: relative;
+  height: 70px; /* Increased height to accommodate markers below the trimmer */
+  width: 100%;
+  background: #333; /* Optional: for visibility */
 }
 
-.video-js-trimmer .vjs-time-tooltip{
-  display: none !important;
+.vjs-trimmer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 30px; /* Position above the time markers */
+  height: 5px;
+  background: rgba(0, 255, 0, 0.5);
 }
+
+.vjs-trimmer-handle {
+  position: absolute;
+  bottom: 25px; /* Align with the trimmer bar */
+  width: 5px;
+  height: 15px;
+  background-color: white;
+  cursor: ew-resize;
+  transition: left 0.1s ease; /* Smooth movement during drag */
+}
+
 .vjs-trimmer-handle.start::before {
   content: '';
   position: absolute;
@@ -19,6 +34,7 @@
   border-style: solid;
   border-color: transparent transparent transparent yellow;
 }
+
 .vjs-trimmer-handle.end::after {
   content: '';
   position: absolute;
@@ -30,34 +46,6 @@
   border-color: transparent yellow transparent transparent;
 }
 
-.vjs-trimmer-handle.start{
-  margin-left: -5px;
-}
-.vjs-trimmer-bar {
-  position: absolute;
-  bottom: 40px;
-  left: 0;
-  right: 0;
-  height: 5px;
-  background-color: rgba(255, 255, 255, 0.3);
-}
-
-.vjs-trimmer {
-  position: absolute;
-  bottom: 30px;
-  height: 100%;
-  background-color: rgba(255, 255, 255, 0.5);
-}
-
-.vjs-trimmer-handle {
-  position: absolute;
-  bottom: 37px;
-  width: 5px;
-  height: 15px;
-  background-color: white;
-  cursor: ew-resize;
-}
-
 .vjs-time-markers {
   position: absolute;
   width: 100%;
@@ -67,15 +55,15 @@
 
 .vjs-time-marker {
   position: absolute;
-  bottom: 60px;
-  height: 100%;
+  bottom: 0; /* Position at the bottom of the trimmer container */
+  height: 20px; /* Height of the marker line */
   width: 1px;
   background-color: rgba(255, 255, 255, 0.3);
 }
 
 .vjs-time-label {
   position: absolute;
-  bottom: 20px;
+  bottom: 20px; /* Position labels just above the marker lines */
   left: 50%;
   transform: translateX(-50%);
   font-size: 10px;
@@ -84,4 +72,15 @@
   padding: 2px 4px;
   border-radius: 2px;
   white-space: nowrap;
+}
+
+.vjs-trimmer-duration {
+  position: absolute;
+  top: 5px;
+  left: 10px;
+  font-size: 12px;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 2px 6px;
+  border-radius: 3px;
 }
