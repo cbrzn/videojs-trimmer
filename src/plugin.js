@@ -10,17 +10,24 @@ class VideoTrimmer extends Plugin {
     this.startTime = 0;
     this.endTime = 0;
     this.originalDuration = 0;
-    this.isDragging = false; // Track dragging state for throttling
+    this.isDragging = false;
 
     this.createTrimmer();
 
     this.player.on("loadedmetadata", () => {
       this.originalDuration = this.player.duration();
       this.endTime = this.originalDuration;
+
+      if (this.options.startTime) {
+        this.startTime = this.options.startTime;
+      }
+      if (this.options.endTimeOffset) {
+        this.endTime = this.originalDuration - this.options.endTimeOffset;
+      }
+
       this.updateTrimmer();
-      // this.createTimeMarkers();
     });
-  
+
     this.player.addClass("video-js-trimmer");
 
     this.bindEvents();
@@ -59,8 +66,9 @@ class VideoTrimmer extends Plugin {
   bindEvents() {
     let isDraggingStart = false;
     let isDraggingEnd = false;
+    let isDraggingBar = false; // New flag for dragging the entire trimmer bar
     let lastUpdateTime = 0;
-    const throttleDelay = 16; // ~60fps
+    const throttleDelay = 8; // ~30fps
 
     const onMouseMove = (event) => {
       if (!this.isDragging) return;
@@ -76,15 +84,26 @@ class VideoTrimmer extends Plugin {
         ((event.clientX - rect.left) / rect.width) * this.originalDuration;
 
       if (isDraggingStart) {
+        // Drag start handle
         this.startTime = Math.min(Math.max(pos, 0), this.endTime);
       } else if (isDraggingEnd) {
+        // Drag end handle
         this.endTime = Math.max(
           Math.min(pos, this.originalDuration),
           this.startTime
         );
+      } else if (isDraggingBar) {
+        // Drag entire trimmer bar
+        const trimmedDuration = this.endTime - this.startTime; // Preserve duration
+        const newStartTime = Math.max(
+          0,
+          Math.min(pos, this.originalDuration - trimmedDuration)
+        );
+        this.startTime = newStartTime;
+        this.endTime = newStartTime + trimmedDuration;
       }
 
-      this.player.currentTime(0)
+      this.player.currentTime(0);
       // Use requestAnimationFrame for smoother updates
       requestAnimationFrame(() => {
         this.updateTrimmer();
@@ -98,6 +117,7 @@ class VideoTrimmer extends Plugin {
     const onMouseUp = () => {
       isDraggingStart = false;
       isDraggingEnd = false;
+      isDraggingBar = false;
       this.isDragging = false;
       document.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("mouseup", onMouseUp);
@@ -117,6 +137,18 @@ class VideoTrimmer extends Plugin {
       this.isDragging = true;
       document.addEventListener("mousemove", onMouseMove);
       document.addEventListener("mouseup", onMouseUp);
+    });
+
+    // Trimmer bar drag
+    this.trimmerEl.addEventListener("mousedown", (event) => {
+      // Only trigger bar drag if not clicking on handles
+      if (!event.target.classList.contains("vjs-trimmer-handle")) {
+        event.preventDefault();
+        isDraggingBar = true;
+        this.isDragging = true;
+        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mouseup", onMouseUp);
+      }
     });
   }
 

@@ -10,8 +10,9 @@
   left: 0;
   right: 0;
   bottom: 30px; /* Position above the time markers */
-  height: 5px;
-  background: rgba(0, 255, 0, 0.5);
+  background: rgba(0, 128, 255, 0.5); /* Semi-transparent blue for visibility */
+  cursor: move; /* Indicates draggable */
+  height: 10px; /* Adjust as needed */
 }
 
 .vjs-trimmer-handle {
